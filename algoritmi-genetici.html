@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algoritmi Genetici — Simulator Vizual</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#ffffff;--surface2:#e8eef5;--border:#c8d8e8;
+  --accent:#0068b5;--accent2:#1e7e3e;--accent3:#c0392b;--accent4:#c77b00;--accent5:#6540a8;
+  --text:#1a2840;--text-dim:#5a7a96;--text-bright:#0a1628;
+  --gene0:#dde8f4;--glow:0 2px 16px rgba(0,104,181,.12);
+  --shadow:0 1px 4px rgba(26,40,64,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden;}
+header{padding:20px 40px 18px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:18px;background:var(--surface);box-shadow:var(--shadow);position:relative;}
+header::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent5));}
+.logo{width:40px;height:40px;border:2px solid var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--surface2);flex-shrink:0;}
+.header-text h1{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:var(--text-bright);letter-spacing:-.02em;}
+.header-text p{font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+.tab-bar{display:flex;padding:0 40px;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto;box-shadow:var(--shadow);}
+.tab{padding:13px 18px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--text-dim);border-bottom:3px solid transparent;transition:all .18s;user-select:none;position:relative;top:1px;white-space:nowrap;}
+.tab:hover{color:var(--accent);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab .step-badge{display:inline-block;width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;font-size:9px;text-align:center;line-height:13px;margin-right:6px;}
+main{padding:28px 40px;max-width:1600px;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow);}
+.panel-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.panel-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600;}
+.panel-meta{font-size:11px;color:var(--text-dim);}
+.info-box{padding:12px 16px;background:rgba(0,104,181,.05);border:1px solid rgba(0,104,181,.18);border-radius:8px;font-size:12px;color:#2c4060;line-height:1.75;margin-bottom:18px;}
+.info-box strong{color:var(--accent);}
+.info-box.warn{background:rgba(199,123,0,.05);border-color:rgba(199,123,0,.25);}
+.info-box.warn strong{color:var(--accent4);}
+.formula{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--accent4);font-size:12px;font-weight:600;}
+/* butoane */
+.btn{padding:9px 20px;border-radius:6px;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;font-weight:700;transition:all .18s;text-transform:uppercase;}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,104,181,.25);}
+.btn-primary:hover{background:#005a9e;box-shadow:0 4px 14px rgba(0,104,181,.35);transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-ghost{background:transparent;color:var(--text-dim);border:1.5px solid var(--border);}
+.btn-ghost:hover{color:var(--accent);border-color:var(--accent);background:rgba(0,104,181,.04);}
+.btn-ghost:disabled{opacity:.35;cursor:not-allowed;}
+.btn-danger{background:transparent;color:var(--accent3);border:1.5px solid rgba(192,57,43,.25);}
+.btn-danger:hover{background:rgba(192,57,43,.06);}
+.btn-success{background:var(--accent2);color:#fff;box-shadow:0 2px 8px rgba(30,126,62,.2);}
+.btn-success:hover{background:#176934;box-shadow:0 4px 14px rgba(30,126,62,.3);transform:translateY(-1px);}
+.btn-amber{background:var(--accent4);color:#fff;box-shadow:0 2px 8px rgba(199,123,0,.25);}
+.btn-amber:hover{background:#a86800;transform:translateY(-1px);}
+.btn-amber:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-violet{background:var(--accent5);color:#fff;box-shadow:0 2px 8px rgba(101,64,168,.25);}
+.btn-violet:hover{background:#533490;transform:translateY(-1px);}
+.btn-violet:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+/* populație */
+.pop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));}
+.chromosome-row{display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);transition:background .12s;}
+.chromosome-row:hover{background:rgba(0,104,181,.03);}
+.chr-id{font-size:10px;color:var(--text-dim);width:28px;flex-shrink:0;font-weight:600;}
+.gene-strip{display:flex;gap:2px;flex-shrink:0;align-items:center;}
+.gene{width:16px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1px solid transparent;}
+.gene.g0{background:var(--gene0);color:#8aaaca;border-color:#c4d8ea;}
+.gene.g1{background:#cce4f7;color:var(--accent);border-color:#99c8ef;}
+.fitness-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.fitness-label{font-size:10px;color:var(--text-dim);}
+.fitness-input{background:var(--surface2);border:1.5px solid var(--border);border-radius:4px;color:var(--accent4);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;width:52px;padding:3px 6px;text-align:right;outline:none;}
+.fitness-input:focus{border-color:var(--accent4);background:#fff;}
+.total-fitness-badge{padding:4px 12px;border:1.5px solid var(--accent4);border-radius:20px;font-size:11px;color:var(--accent4);font-weight:600;background:rgba(199,123,0,.06);}
+/* selecție */
+.sel-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sel-table th{padding:9px 16px;text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:600;}
+.sel-table td{padding:8px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.sel-table tr:hover td{background:rgba(0,104,181,.02);}
+.sel-table tr.row-selected td{background:rgba(0,104,181,.06);}
+.prob-bar-bg{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:80px;}
+.prob-bar-fill{height:100%;border-radius:3px;}
+.roulette-wrap{display:flex;justify-content:center;margin:16px 0;}
+#roulette-canvas{border-radius:50%;box-shadow:0 4px 20px rgba(0,104,181,.12);}
+.spin-section{padding:20px;border-top:1px solid var(--border);}
+.spin-controls{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.spin-results{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;}
+.spin-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;opacity:0;transform:translateY(8px);transition:all .3s;box-shadow:var(--shadow);}
+.spin-card.revealed{opacity:1;transform:translateY(0);}
+.spin-card.just-revealed{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,104,181,.15);}
+.spin-num{font-size:15px;font-weight:700;color:var(--accent4);display:block;margin-bottom:4px;}
+.selection-summary{margin-top:18px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;}
+.summary-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;font-weight:600;}
+.summary-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.summary-chip{padding:4px 10px;border-radius:5px;font-size:11px;border:1px solid var(--border);color:var(--text-dim);background:var(--surface);}
+.summary-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,104,181,.06);font-weight:600;}
+.sel-gene-mini{display:inline-flex;gap:1px;}
+.sel-gene-mini span{width:8px;height:12px;border-radius:1px;display:inline-block;}
+.sel-gene-mini span.g0{background:#c8dcea;}
+.sel-gene-mini span.g1{background:#7cb9e8;}
+/* încrucișare */
+.co-rolls-table{width:100%;border-collapse:collapse;font-size:12px;}
+.co-rolls-table th{padding:9px 14px;text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:600;}
+.co-rolls-table td{padding:7px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.co-rolls-table tr.co-yes td{background:rgba(30,126,62,.04);}
+.co-rolls-table tr.co-no td{opacity:.45;}
+.badge-yes{display:inline-block;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(30,126,62,.12);border:1px solid rgba(30,126,62,.35);color:var(--accent2);}
+.badge-no{display:inline-block;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.3);color:var(--accent3);}
+.pool-queue{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px;}
+.pool-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;transition:all .25s;box-shadow:var(--shadow);}
+.pool-chip.waiting{opacity:.5;}
+.pool-chip.active-chip{border-color:var(--accent4);background:rgba(199,123,0,.06);box-shadow:0 0 0 3px rgba(199,123,0,.12);}
+.pool-chip.done-chip{border-color:var(--accent2);color:var(--accent2);background:rgba(30,126,62,.05);}
+.pool-chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.co-stage-controls{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface2);}
+.bp-badge{padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(199,123,0,.1);border:1px solid rgba(199,123,0,.4);color:var(--accent4);}
+.op-row{display:flex;align-items:center;gap:10px;}
+.op-row-label{font-size:11px;width:32px;flex-shrink:0;font-weight:700;}
+.op-divider{border:none;border-top:1px dashed var(--border);margin:4px 0;}
+.bp-marker{width:3px;height:28px;background:var(--accent4);border-radius:2px;flex-shrink:0;opacity:.9;box-shadow:0 0 6px rgba(199,123,0,.4);margin:0 2px;}
+.new-label{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent2);white-space:nowrap;font-weight:600;}
+.completed-card{border-left:3px solid var(--accent2);background:var(--surface2);border-radius:0 8px 8px 0;margin:0 16px 10px;padding:12px 14px;animation:fadeSlideIn .3s ease both;}
+.completed-card.is-trio{border-left-color:var(--accent4);}
+.completed-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap;}
+.completed-rows{display:flex;flex-direction:column;gap:7px;}
+.trio-completed-flow{display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:6px;}
+.trio-completed-col{padding:8px;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:5px;}
+.trio-completed-col:last-child{border-right:none;}
+.trio-col-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+.trio-arrow{font-size:18px;color:var(--text-dim);}
+.empty-pool-msg{padding:30px;text-align:center;color:var(--text-dim);font-size:13px;line-height:1.8;}
+.empty-pool-msg strong{color:var(--accent4);display:block;font-size:15px;margin-bottom:6px;}
+/* înlocuire */
+.repl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));}
+.repl-row{display:flex;align-items:flex-start;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);transition:background .18s;}
+.repl-row.repl-changed{background:rgba(30,126,62,.04);border-left:3px solid var(--accent2);}
+.repl-row.repl-unchanged{opacity:.6;}
+.repl-slot{font-size:10px;color:var(--text-dim);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;}
+.repl-tag{font-size:9px;padding:2px 7px;border-radius:3px;margin-left:4px;flex-shrink:0;font-weight:700;}
+.repl-tag-new{background:rgba(30,126,62,.12);color:var(--accent2);border:1px solid rgba(30,126,62,.3);}
+.repl-tag-same{background:rgba(90,122,150,.08);color:var(--text-dim);border:1px solid rgba(90,122,150,.2);}
+/* mutație */
+.prob-input{background:var(--surface2);border:1.5px solid var(--border);border-radius:4px;color:var(--accent4);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;width:72px;padding:5px 8px;text-align:right;outline:none;}
+.prob-input:focus{border-color:var(--accent4);background:#fff;}
+.mut-card{border-left:3px solid var(--accent5);background:var(--surface2);border-radius:0 8px 8px 0;margin:0 16px 10px;padding:12px 14px;animation:fadeSlideIn .3s ease both;}
+.mut-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:11px;flex-wrap:wrap;}
+.mut-point-badge{padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(101,64,168,.1);border:1px solid rgba(101,64,168,.35);color:var(--accent5);}
+.mut-flip-badge{padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.3);color:var(--accent3);}
+.gene-mut{width:16px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.gene-mut.mutated{animation:mutGlow .6s ease both;border:2px solid var(--accent5) !important;}
+@keyframes mutGlow{0%{box-shadow:0 0 0 0 rgba(101,64,168,.7);}100%{box-shadow:0 0 10px 4px rgba(101,64,168,0);}}
+/* rezultate */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;}
+.results-col{border-right:1px solid var(--border);}
+.results-col:last-child{border-right:none;}
+.results-col-header{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px;font-weight:600;}
+.res-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);transition:background .12s;}
+.res-row:hover{background:var(--surface2);}
+.res-row.res-changed{background:rgba(192,57,43,.04);}
+.res-slot{font-size:10px;color:var(--text-dim);width:22px;flex-shrink:0;font-weight:600;}
+.diff-stats{padding:14px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;font-size:12px;border-top:1px solid var(--border);background:var(--surface2);}
+.diff-stat-val{font-size:22px;font-weight:800;font-family:'Syne',sans-serif;}
+
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.anim-in{animation:fadeSlideIn .28s ease both;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(199,123,0,.5);}50%{box-shadow:0 0 0 7px rgba(199,123,0,0);}}
+.pulse{animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse-v{0%,100%{box-shadow:0 0 0 0 rgba(101,64,168,.5);}50%{box-shadow:0 0 0 7px rgba(101,64,168,0);}}
+.pulse-v{animation:pulse-v 1.4s ease-in-out infinite;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#aabcce;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🧬</div>
+  <div class="header-text">
+    <h1>Algoritmi Genetici — Simulator Vizual</h1>
+    <p>Populație · Selecție · Încrucișare · Mutație · Rezultate</p>
+  </div>
+</header>
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('populatie')" id="tab-populatie"><span class="step-badge">1</span>Populație</div>
+  <div class="tab" onclick="switchTab('selectie')"   id="tab-selectie"><span class="step-badge">2</span>Selecție</div>
+  <div class="tab" onclick="switchTab('incrucisare')" id="tab-incrucisare"><span class="step-badge">3</span>Încrucișare</div>
+  <div class="tab" onclick="switchTab('mutatie')"    id="tab-mutatie"><span class="step-badge">4</span>Mutație</div>
+  <div class="tab" onclick="switchTab('rezultate')"  id="tab-rezultate"><span class="step-badge">5</span>Rezultate</div>
+</div>
+<main>
+
+<!-- ══ TAB 1: POPULAȚIE ══ -->
+<div class="tab-content active" id="content-populatie">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Populație Inițială — 16 Cromozomi × 12 Gene</span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="total-fitness-badge" id="total-fitness-badge">Fitness Total: —</span>
+        <button class="btn btn-ghost" onclick="regenereazaTot()">⟳ Regenerează Tot</button>
+      </div>
+    </div>
+    <div class="pop-grid" id="pop-grid"></div>
+  </div>
+  <div class="info-box">Fiecare cromozom este un șir binar de <strong>12 gene</strong> (0 sau 1). <strong>Valoarea de fitness</strong> (10–100) reprezintă cât de bine rezolvă individul problema țintă. Faceți click pe orice valoare de fitness pentru a o edita.</div>
+  <div style="display:flex;justify-content:flex-end;"><button class="btn btn-primary" onclick="switchTab('selectie')">Mergi la Selecție →</button></div>
+</div>
+
+<!-- ══ TAB 2: SELECȚIE ══ -->
+<div class="tab-content" id="content-selectie">
+  <div class="info-box"><strong>Selecție Proporțională cu Fitness-ul (Roata Ruletei)</strong><br>Fiecare cromozom primește o probabilitate de selecție proporțională cu fitness-ul său: <span class="formula">P(i) = f(i) / Σf</span>. Intervalul [0,1] este împărțit în segmente corespunzătoare acestor probabilități. Un număr aleatoriu determină cromozomul selectat.</div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Probabilități și Distribuția Intervalului</span><span class="panel-meta" id="sel-total-info"></span></div>
+    <div style="overflow-x:auto;"><table class="sel-table"><thead><tr><th>#</th><th>Cromozom</th><th>Fitness</th><th>P(i)</th><th>Bară</th><th>Interval [a,b)</th></tr></thead><tbody id="sel-tbody"></tbody></table></div>
+  </div>
+  <div class="panel"><div class="panel-header"><span class="panel-title">Roata Ruletei</span></div><div class="roulette-wrap"><canvas id="roulette-canvas" width="300" height="300"></canvas></div></div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Selecție Pas cu Pas — 16 Extrageri</span><span class="panel-meta" id="spin-progress">0 / 16 selectați</span></div>
+    <div class="spin-section">
+      <div class="spin-controls">
+        <button class="btn btn-primary" id="btn-next-spin" onclick="nextSpin()">▶ Extrage Următor</button>
+        <button class="btn btn-ghost"  onclick="autoSpin()">⚡ Auto-Completare</button>
+        <button class="btn btn-danger" onclick="resetSpins()">✕ Resetează</button>
+        <span style="font-size:11px;color:var(--text-dim);">Extrase: <span id="drawn-count" style="color:var(--accent4);font-weight:700;">0</span> / 16</span>
+      </div>
+      <div class="spin-results" id="spin-results"></div>
+      <div class="selection-summary" id="sel-summary" style="display:none;">
+        <div class="summary-title">Cromozomi selectați (noua generație)</div>
+        <div class="summary-grid" id="summary-chips"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 3: ÎNCRUCIȘARE ══ -->
+<div class="tab-content" id="content-incrucisare">
+  <div class="info-box"><strong>Încrucișare Monocromatică — Pas cu Pas</strong><br>Fiecare din cei 16 cromozomi selectați primește un număr aleatoriu r ∈ [0,1]. Dacă <span class="formula">r &lt; p<sub>c</sub></span>, cromozomul intră în <strong>lotul de încrucișare</strong>. Perechile sunt procesate una câte una: apăsați <strong>„Generează Punct de Tăiere"</strong> pentru a alege o poziție aleatorie de separare și a vizualiza schimbul. Dacă lotul este impar și ≥ 3, ultimii trei participă la <strong>încrucișare circulară</strong>. Descendenții <strong>înlocuiesc părinții</strong> în noua generație.</div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Configurare</span></div>
+    <div style="padding:16px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--text-dim);">Probabilitate încrucișare p<sub>c</sub> =</span><input class="prob-input" type="number" id="co-prob-input" min="0" max="1" step="0.01" value="0.25"></div>
+      <button class="btn btn-success" onclick="runCrossover()">⚡ Rulează Extragerea</button>
+      <button class="btn btn-danger"  onclick="resetCrossover()">✕ Resetează</button>
+      <span id="co-status" style="font-size:11px;color:var(--accent3);"></span>
+    </div>
+  </div>
+  <div class="panel" id="co-rolls-panel" style="display:none;">
+    <div class="panel-header"><span class="panel-title">Pasul 1 — Extragere Eligibilitate</span><span class="panel-meta" id="co-rolls-meta"></span></div>
+    <div style="overflow-x:auto;"><table class="co-rolls-table"><thead><tr><th>Idx</th><th>Din</th><th>Cromozom</th><th>Valoare r</th><th>r &lt; p<sub>c</sub>?</th><th>Decizie</th></tr></thead><tbody id="co-rolls-tbody"></tbody></table></div>
+    <div style="border-top:1px solid var(--border);padding:12px 20px 6px;">
+      <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;font-weight:600;">Coada Lotului de Încrucișare</div>
+      <div class="pool-queue" id="pool-queue"></div>
+    </div>
+  </div>
+  <div id="co-step-panel" style="display:none;">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Pasul 2 — Operații de Încrucișare</span><span class="panel-meta" id="co-step-meta">0 / 0 efectuate</span></div>
+      <div class="co-stage-controls">
+        <button class="btn btn-amber pulse" id="btn-next-co" onclick="nextCrossoverStep()">✂ Generează Punct de Tăiere</button>
+        <button class="btn btn-ghost" id="btn-auto-co" onclick="autoCompleteCrossover()">⚡ Auto-Completare</button>
+        <span style="font-size:11px;color:var(--text-dim);">Operația: <span id="co-op-counter" style="color:var(--accent4);font-weight:700;">1</span> / <span id="co-op-total">?</span></span>
+      </div>
+      <div id="co-active-op" style="padding:16px 20px;min-height:50px;"></div>
+      <div id="co-completed-list" style="display:none;">
+        <div style="padding:8px 20px 4px;border-top:1px solid var(--border);"><span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-weight:600;">Efectuate</span></div>
+        <div id="co-completed-body"></div>
+      </div>
+    </div>
+  </div>
+  <div id="co-edge-panel" style="display:none;"><div class="panel"><div class="panel-header"><span class="panel-title">Pasul 2 — Operații de Încrucișare</span></div><div class="empty-pool-msg" id="co-edge-msg"></div></div></div>
+  <div id="co-repl-panel" style="display:none;">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Pasul 3 — Noua Generație după Înlocuire</span><span class="panel-meta" id="co-repl-meta"></span></div>
+      <div class="info-box warn" style="margin:14px 16px 0;border-radius:6px;"><strong>Descendenții înlocuiesc părinții.</strong> Fiecare slot din noua generație fie păstrează cromozomul selectat nemodificat, fie este înlocuit de un descendent produs prin încrucișare. Sloturile modificate sunt evidențiate în verde.</div>
+      <div class="repl-grid" id="co-repl-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 4: MUTAȚIE ══ -->
+<div class="tab-content" id="content-mutatie">
+  <div class="info-box"><strong>Mutație prin Inversare de Bit — Pas cu Pas</strong><br>Fiecare din cei 16 cromozomi (după încrucișare) primește un număr aleatoriu r ∈ [0,1]. Dacă <span class="formula">r ≤ p<sub>m</sub></span>, acel cromozom este selectat pentru mutație. Se alege aleatoriu o poziție, iar bitul de la acea poziție este inversat.</div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Configurare</span></div>
+    <div style="padding:16px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--text-dim);">Probabilitate mutație p<sub>m</sub> =</span><input class="prob-input" type="number" id="mut-prob-input" min="0" max="1" step="0.01" value="0.2"></div>
+      <button class="btn btn-violet" onclick="runMutation()">⚡ Rulează Extragerea</button>
+      <button class="btn btn-danger" onclick="resetMutation()">✕ Resetează</button>
+      <span id="mut-status" style="font-size:11px;color:var(--accent3);"></span>
+    </div>
+  </div>
+  <div class="panel" id="mut-rolls-panel" style="display:none;">
+    <div class="panel-header"><span class="panel-title">Pasul 1 — Extragere Eligibilitate</span><span class="panel-meta" id="mut-rolls-meta"></span></div>
+    <div style="overflow-x:auto;"><table class="co-rolls-table"><thead><tr><th>Idx</th><th>Cromozom</th><th>Gene</th><th>Valoare r</th><th>r ≤ p<sub>m</sub>?</th><th>Decizie</th></tr></thead><tbody id="mut-rolls-tbody"></tbody></table></div>
+  </div>
+  <div id="mut-step-panel" style="display:none;">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Pasul 2 — Mutații</span><span class="panel-meta" id="mut-step-meta">0 / 0 efectuate</span></div>
+      <div class="co-stage-controls">
+        <button class="btn btn-violet pulse-v" id="btn-next-mut" onclick="nextMutationStep()">☢ Alege Punct de Mutație</button>
+        <button class="btn btn-ghost" id="btn-auto-mut" onclick="autoCompleteMutation()">⚡ Auto-Completare</button>
+        <span style="font-size:11px;color:var(--text-dim);">Mutația: <span id="mut-op-counter" style="color:var(--accent5);font-weight:700;">1</span> / <span id="mut-op-total">?</span></span>
+      </div>
+      <div id="mut-active-op" style="padding:16px 20px;min-height:50px;"></div>
+      <div id="mut-completed-list" style="display:none;">
+        <div style="padding:8px 20px 4px;border-top:1px solid var(--border);"><span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-weight:600;">Mutații Efectuate</span></div>
+        <div id="mut-completed-body"></div>
+      </div>
+    </div>
+  </div>
+  <div id="mut-edge-panel" style="display:none;"><div class="panel"><div class="panel-header"><span class="panel-title">Pasul 2 — Mutații</span></div><div class="empty-pool-msg" id="mut-edge-msg"></div></div></div>
+  <!-- Pasul 3: comparație înainte/după mutație -->
+  <div id="mut-diff-panel" style="display:none;">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Pasul 3 — Populație Înainte vs. După Mutație</span>
+        <span class="panel-meta" id="mut-diff-meta"></span>
+      </div>
+      <div class="info-box warn" style="margin:14px 16px 0;border-radius:6px;">
+        <strong>Efectul mutației.</strong> Coloana din stânga arată populația intrată în pasul de mutație (după încrucișare). Coloana din dreapta arată populația după aplicarea mutațiilor. Biții modificați sunt evidențiați în violet.
+      </div>
+      <div class="results-grid">
+        <div class="results-col">
+          <div class="results-col-header" style="color:var(--accent4);">⬛ Înainte de Mutație</div>
+          <div id="mut-diff-left"></div>
+        </div>
+        <div class="results-col">
+          <div class="results-col-header" style="color:var(--accent5);">🟣 După Mutație</div>
+          <div id="mut-diff-right"></div>
+        </div>
+      </div>
+      <div class="diff-stats" id="mut-diff-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 5: REZULTATE ══ -->
+<div class="tab-content" id="content-rezultate">
+  <div class="info-box"><strong>Comparație între Generații</strong><br><strong>Populația originală</strong> (înainte de orice operație AG) este afișată în stânga. <strong>Populația finală</strong> (după selecție, încrucișare și mutație) este afișată în dreapta. Genele care s-au modificat sunt evidențiate în roșu.</div>
+  <div class="panel" id="results-panel">
+    <div class="panel-header"><span class="panel-title">Populație Originală vs. Populație Finală</span><span class="panel-meta" id="results-meta"></span></div>
+    <div class="results-grid">
+      <div class="results-col"><div class="results-col-header" style="color:var(--accent);">⬛ Generația 0 — Originală</div><div id="res-left"></div></div>
+      <div class="results-col"><div class="results-col-header" style="color:var(--accent2);">🟩 Generația 1 — Finală</div><div id="res-right"></div></div>
+    </div>
+    <div class="diff-stats" id="diff-stats"></div>
+  </div>
+  <div id="results-incomplete" style="padding:40px;text-align:center;color:var(--text-dim);font-size:13px;line-height:1.8;display:none;">
+    Finalizați <strong style="color:var(--accent);">Selecția</strong>, <strong style="color:var(--accent);">Încrucișarea</strong> și <strong style="color:var(--accent);">Mutația</strong> pentru a vedea comparația finală.
+  </div>
+</div>
+
+</main>
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const N=16,L=12;
+let originalPop=[],population=[],spins=[],spinIndex=0;
+let coProb=0.25,coRolls=null,coOps=null,coOpIndex=0,coAutoRunning=false,postCrossoverPop=null;
+let mutProb=0.2,mutRolls=null,mutOps=null,mutOpIndex=0,mutAutoRunning=false,postMutationPop=null;
+
+const CHR_COLORS=['#0068b5','#1e7e3e','#c0392b','#c77b00','#6540a8','#c0782a','#147a6e','#a0357a','#2860c4','#7a4a90','#28844e','#b84040','#2080a8','#9a8420','#8040b0','#b84468'];
+const PAIR_PAL=[['#c77b00','#0068b5'],['#c0392b','#1e7e3e'],['#6540a8','#c0782a'],['#a0357a','#147a6e'],['#2860c4','#9a8420'],['#7a4a90','#2080a8'],['#28844e','#b84040'],['#8040b0','#b84468']];
+const TRIO_COL=['#c0392b','#1e7e3e','#2860c4'];
+
+function rc(){return Array.from({length:L},()=>Math.random()>.5?1:0);}
+function rf(){return Math.floor(Math.random()*91)+10;}
+function deepClone(p){return p.map(c=>({...c,genes:[...c.genes]}));}
+
+function initPopulation(){
+  population=Array.from({length:N},(_,i)=>({id:i+1,genes:rc(),fitness:rf(),color:CHR_COLORS[i]}));
+  originalPop=deepClone(population);
+}
+
+function regenereazaTot(){
+  initPopulation();renderPopulation();resetSpins();resetCrossover();resetMutation();
+  if(document.getElementById('content-selectie').classList.contains('active')){buildSelectionTable();drawRoulette();}
+}
+
+function renderPopulation(){
+  const grid=document.getElementById('pop-grid');grid.innerHTML='';
+  document.getElementById('total-fitness-badge').textContent='Fitness Total: '+population.reduce((s,c)=>s+c.fitness,0);
+  population.forEach(chr=>{
+    const row=document.createElement('div');row.className='chromosome-row';row.id='chr-row-'+chr.id;
+    row.innerHTML=`<span class="chr-id">C${String(chr.id).padStart(2,'0')}</span>
+      <div class="gene-strip">${chr.genes.map(g=>`<div class="gene g${g}">${g}</div>`).join('')}</div>
+      <div class="fitness-wrap"><span class="fitness-label">f=</span>
+        <input class="fitness-input" type="number" min="10" max="100" value="${chr.fitness}" data-id="${chr.id}"
+          onchange="updateFitness(${chr.id},this.value)" onblur="updateFitness(${chr.id},this.value)">
+      </div>`;
+    grid.appendChild(row);
+  });
+}
+
+function updateFitness(id,val){
+  let v=Math.max(10,Math.min(100,parseInt(val)||10));
+  population.find(c=>c.id===id).fitness=v;
+  originalPop.find(c=>c.id===id).fitness=v;
+  const inp=document.querySelector(`input[data-id="${id}"]`);if(inp)inp.value=v;
+  document.getElementById('total-fitness-badge').textContent='Fitness Total: '+population.reduce((s,c)=>s+c.fitness,0);
+  if(document.getElementById('content-selectie').classList.contains('active')){buildSelectionTable();drawRoulette();}
+  resetSpins();resetCrossover();resetMutation();
+}
+
+// ═══════════════════════════════════════════════════
+// SELECȚIE
+// ═══════════════════════════════════════════════════
+function getSelData(){
+  const tot=population.reduce((s,c)=>s+c.fitness,0);let cum=0;
+  return population.map(c=>{const p=c.fitness/tot,st=cum;cum+=p;return{...c,prob:p,iStart:st,iEnd:Math.min(cum,1)};});
+}
+
+function buildSelectionTable(){
+  const data=getSelData();
+  document.getElementById('sel-total-info').textContent='Σf = '+population.reduce((s,c)=>s+c.fitness,0);
+  const tbody=document.getElementById('sel-tbody');tbody.innerHTML='';
+  data.forEach(d=>{
+    const tr=document.createElement('tr');tr.id='sel-row-'+d.id;
+    tr.innerHTML=`<td style="color:var(--text-dim);font-size:11px;font-weight:600;">C${String(d.id).padStart(2,'0')}</td>
+      <td><div class="sel-gene-mini">${d.genes.map(g=>`<span class="g${g}"></span>`).join('')}</div></td>
+      <td style="color:var(--accent4);font-weight:700;">${d.fitness}</td>
+      <td style="color:var(--accent);font-size:11px;font-weight:600;">${(d.prob*100).toFixed(2)}%</td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="prob-bar-bg" style="min-width:80px;"><div class="prob-bar-fill" style="width:${Math.max(d.prob*100,1)}%;background:${d.color};"></div></div>
+        <span style="font-size:10px;color:var(--text-dim);">${(d.prob*100).toFixed(2)}%</span></div></td>
+      <td style="color:var(--text-dim);font-size:11px;">[<span style="color:var(--accent2);font-weight:600;">${d.iStart.toFixed(4)}</span>, <span style="color:var(--accent2);font-weight:600;">${d.iEnd.toFixed(4)}</span>)</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function drawRoulette(hlId=null){
+  const cv=document.getElementById('roulette-canvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height,cx=W/2,cy=H/2,r=W/2-10;
+  ctx.clearRect(0,0,W,H);
+  // background circle
+  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.fillStyle='#eef4fb';ctx.fill();
+  const data=getSelData();let ang=-Math.PI/2;
+  data.forEach(d=>{
+    const sw=d.prob*2*Math.PI,hl=hlId===d.id;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,ang+sw);ctx.closePath();
+    ctx.fillStyle=hl?d.color:d.color+'99';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=hl?3:1.5;ctx.stroke();
+    if(d.prob>.04){const mid=ang+sw/2;ctx.fillStyle='#fff';ctx.font='bold 9px JetBrains Mono,monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('C'+d.id,cx+(r*.65)*Math.cos(mid),cy+(r*.65)*Math.sin(mid));}
+    ang+=sw;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,30,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  ctx.strokeStyle='#c8d8e8';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='var(--text)';ctx.font='bold 11px JetBrains Mono,monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('AG',cx,cy);
+}
+
+function wheelSelect(r,data){for(let d of data)if(r>=d.iStart&&r<d.iEnd)return d;return data[data.length-1];}
+
+function nextSpin(){
+  if(spinIndex>=16)return;
+  const data=getSelData(),r=Math.random(),sel=wheelSelect(r,data);
+  spins.push({rnd:r,selected:sel});spinIndex++;
+  renderSpinCard(spinIndex-1,true);updateSpinProgress();
+  document.querySelectorAll('#sel-tbody tr').forEach(t=>t.classList.remove('row-selected'));
+  const row=document.getElementById('sel-row-'+sel.id);
+  if(row){row.classList.add('row-selected');row.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  drawRoulette(sel.id);updateSummary();
+  if(spinIndex>=16)document.getElementById('btn-next-spin').disabled=true;
+}
+
+function renderSpinCard(i,animate){
+  let card=document.getElementById('spin-card-'+i);
+  if(!card){card=document.createElement('div');card.className='spin-card';card.id='spin-card-'+i;document.getElementById('spin-results').appendChild(card);}
+  const s=spins[i];
+  const gm=s.selected.genes.map(g=>`<span style="display:inline-block;width:5px;height:9px;border-radius:1px;background:${g?'#99c8ef':'#dde8f4'};margin:0 .5px;"></span>`).join('');
+  card.innerHTML=`<span class="spin-num">${s.rnd.toFixed(4)}</span><div style="font-size:10px;color:${s.selected.color};font-weight:600;">C${String(s.selected.id).padStart(2,'0')}</div><div style="margin:4px auto 2px;">${gm}</div><div style="font-size:10px;color:var(--text-dim);">f=${s.selected.fitness}</div>`;
+  if(animate)requestAnimationFrame(()=>{card.classList.add('revealed','just-revealed');setTimeout(()=>card.classList.remove('just-revealed'),600);});
+  else card.classList.add('revealed');
+}
+
+function updateSpinProgress(){document.getElementById('spin-progress').textContent=spinIndex+' / 16 selectați';document.getElementById('drawn-count').textContent=spinIndex;}
+
+function updateSummary(){
+  const sm=document.getElementById('sel-summary'),ch=document.getElementById('summary-chips');
+  if(!spins.length){sm.style.display='none';return;}sm.style.display='block';
+  const cnt={};spins.forEach(s=>{cnt[s.selected.id]=(cnt[s.selected.id]||0)+1;});
+  ch.innerHTML='';
+  population.forEach(c=>{const chip=document.createElement('div');chip.className='summary-chip'+(cnt[c.id]?' active':'');chip.innerHTML=`<span style="color:${c.color};font-weight:600;">C${String(c.id).padStart(2,'0')}</span> ×${cnt[c.id]||0}`;ch.appendChild(chip);});
+}
+
+async function autoSpin(){while(spinIndex<16){nextSpin();await new Promise(r=>setTimeout(r,110));}}
+
+function resetSpins(){
+  spins=[];spinIndex=0;
+  document.getElementById('spin-results').innerHTML='';
+  document.getElementById('spin-progress').textContent='0 / 16 selectați';
+  document.getElementById('drawn-count').textContent='0';
+  document.getElementById('btn-next-spin').disabled=false;
+  document.getElementById('sel-summary').style.display='none';
+  document.querySelectorAll('#sel-tbody tr').forEach(t=>t.classList.remove('row-selected'));
+  if(document.getElementById('content-selectie').classList.contains('active'))drawRoulette();
+}
+
+// ═══════════════════════════════════════════════════
+// AJUTOARE GENE STRIP
+// ═══════════════════════════════════════════════════
+function coStrip(genes,bp,lCol,rCol,dimL,dimR,showBp){
+  let h='<div class="gene-strip">';
+  genes.forEach((g,i)=>{
+    const isL=i<bp,col=isL?lCol:rCol,dim=isL?dimL:dimR;
+    const opacity=dim?'33':'bb';
+    const bg=g?col+opacity:col+'18';
+    const txt=g?(dim?col+'66':col+'ee'):(dim?col+'44':col+'88');
+    const brd=dim?col+'22':col+'66';
+    h+=`<div class="gene" style="background:${bg};color:${txt};border:1px solid ${brd};">${g}</div>`;
+    if(showBp&&i===bp-1)h+='<div class="bp-marker"></div>';
+  });
+  return h+'</div>';
+}
+
+function miniStrip(genes){
+  return '<div class="gene-strip">'+genes.map(g=>`<span style="display:inline-block;width:7px;height:11px;border-radius:1px;background:${g?'#7cb9e8':'#c8dcea'};margin:0 .5px;"></span>`).join('')+'</div>';
+}
+
+function plainStrip(genes){
+  return '<div class="gene-strip">'+genes.map(g=>`<div class="gene g${g}">${g}</div>`).join('')+'</div>';
+}
+
+function mutStrip(genes,mutPos,showNew){
+  let h='<div class="gene-strip">';
+  genes.forEach((g,i)=>{
+    const isMut=(i===mutPos);let style,cls='gene-mut';
+    if(isMut){
+      if(showNew){style=g?`background:#d4c4f8;color:${CHR_COLORS[4]};border:1px solid ${CHR_COLORS[4]}88;`:`background:#ede8fb;color:${CHR_COLORS[4]}88;border:1px solid ${CHR_COLORS[4]}44;`;cls+=' mutated';}
+      else{style=g?`background:#fdebc8;color:var(--accent4);border:2px solid var(--accent4);`:`background:#fef5e4;color:var(--accent4)88;border:2px solid var(--accent4);`;}
+    } else {
+      style=g?`background:#cce4f7;color:var(--accent);border:1px solid #99c8ef;`:`background:var(--gene0);color:#8aaaca;border:1px solid #c4d8ea;`;
+    }
+    h+=`<div class="${cls}" style="${style}">${g}</div>`;
+  });
+  return h+'</div>';
+}
+
+function diffStrip(genes,refGenes){
+  let h='<div class="gene-strip">';
+  genes.forEach((g,i)=>{
+    const isDiff=refGenes&&(g!==refGenes[i]);let style;
+    if(isDiff){style=g?`background:#f5c6c2;color:var(--accent3);border:2px solid var(--accent3);`:`background:#fce8e7;color:${CHR_COLORS[2]}88;border:2px solid var(--accent3);`;}
+    else{style=g?`background:#cce4f7;color:var(--accent);border:1px solid #99c8ef;`:`background:var(--gene0);color:#8aaaca;border:1px solid #c4d8ea;`;}
+    h+=`<div class="gene" style="${style}">${g}</div>`;
+  });
+  return h+'</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// ÎNCRUCIȘARE
+// ═══════════════════════════════════════════════════
+function resetCrossover(){
+  coRolls=null;coOps=null;coOpIndex=0;coAutoRunning=false;postCrossoverPop=null;
+  ['co-rolls-panel','co-step-panel','co-edge-panel','co-repl-panel'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('co-status').textContent='';
+  document.getElementById('co-completed-body').innerHTML='';
+  document.getElementById('co-completed-list').style.display='none';
+  document.getElementById('co-active-op').innerHTML='';
+  resetMutation();
+}
+
+function runCrossover(){
+  const statusEl=document.getElementById('co-status');
+  if(spins.length<16){statusEl.textContent='⚠ Finalizați mai întâi pasul de Selecție.';return;}
+  statusEl.textContent='';
+  coProb=Math.min(1,Math.max(0,parseFloat(document.getElementById('co-prob-input').value)||0.25));
+  coRolls=spins.map((s,i)=>{const r=parseFloat(Math.random().toFixed(4));return{idx:i,chr:s.selected,roll:r,selected:r<coProb};});
+  const poolRolls=coRolls.filter(r=>r.selected);
+  const pool=poolRolls.map(r=>r.chr),poolIdx=poolRolls.map(r=>r.idx);
+  coOps=[];
+  if(pool.length>1){
+    let arr=[...pool],arrIdx=[...poolIdx],trio=null,trioIdx=null;
+    if(arr.length%2===1&&arr.length>=3){trio=arr.splice(arr.length-3,3);trioIdx=arrIdx.splice(arrIdx.length-3,3);}
+    for(let i=0;i<arr.length;i+=2)coOps.push({type:'pair',p1:arr[i],p2:arr[i+1],posP1:arrIdx[i],posP2:arrIdx[i+1],bp:null,c1:null,c2:null});
+    if(trio)coOps.push({type:'trio',a:trio[0],b:trio[1],c:trio[2],posA:trioIdx[0],posB:trioIdx[1],posC:trioIdx[2],bp:null,ca:null,cb:null,cc:null});
+  }
+  coOpIndex=0;
+  renderCoRolls(pool.length);renderPoolQueue(pool,poolIdx);
+  if(pool.length<=1){renderCoEdge(pool.length);}
+  else{
+    document.getElementById('co-step-panel').style.display='block';
+    document.getElementById('co-op-total').textContent=coOps.length;
+    document.getElementById('co-op-counter').textContent=1;
+    document.getElementById('co-step-meta').textContent='0 / '+coOps.length+' efectuate';
+    renderActiveOpPlaceholder();updateCoButtons();
+  }
+}
+
+function renderCoRolls(poolSize){
+  const tbody=document.getElementById('co-rolls-tbody');tbody.innerHTML='';
+  coRolls.forEach((r,i)=>{
+    const tr=document.createElement('tr');tr.className=r.selected?'co-yes':'co-no';
+    tr.style.animation=`fadeSlideIn .2s ease ${i*.02}s both`;
+    tr.innerHTML=`<td style="color:var(--text-dim);font-weight:600;">${i+1}</td>
+      <td style="color:${r.chr.color};font-weight:700;">C${String(r.chr.id).padStart(2,'0')}</td>
+      <td>${miniStrip(r.chr.genes)}</td>
+      <td style="color:${r.selected?'var(--accent2)':'var(--text-dim)'};font-weight:700;">${r.roll.toFixed(4)}</td>
+      <td style="font-size:11px;color:${r.selected?'var(--accent2)':'var(--accent3)'};">${r.roll.toFixed(4)} ${r.selected?'<':'≥'} ${coProb.toFixed(2)}</td>
+      <td>${r.selected?'<span class="badge-yes">✓ Selectat</span>':'<span class="badge-no">✗ Exclus</span>'}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('co-rolls-meta').textContent=`${poolSize} / 16 în lot · p_c = ${coProb.toFixed(2)}`;
+  document.getElementById('co-rolls-panel').style.display='block';
+}
+
+function renderPoolQueue(pool,poolIdx){
+  const qEl=document.getElementById('pool-queue');qEl.innerHTML='';
+  if(!pool.length){qEl.innerHTML='<span style="font-size:11px;color:var(--text-dim);">Niciun cromozom selectat</span>';return;}
+  let arr=[...pool],arrIdx=[...poolIdx],trioArr=null;
+  if(arr.length%2===1&&arr.length>=3)trioArr=arr.splice(arr.length-3,3);
+  let pn=0;
+  for(let i=0;i<arr.length;i+=2){
+    pn++;
+    [arr[i],arr[i+1]].forEach(c=>{
+      const chip=document.createElement('div');chip.className='pool-chip waiting';chip.dataset.pg='pair-'+Math.floor(i/2);
+      chip.innerHTML=`<div class="dot" style="background:${c.color};"></div><span style="color:${c.color};font-weight:600;">C${String(c.id).padStart(2,'0')}</span><span style="color:var(--text-dim);font-size:10px;">Pereche ${pn}</span>`;
+      qEl.appendChild(chip);
+    });
+    if(i+2<arr.length){const sep=document.createElement('div');sep.innerHTML='<span style="color:var(--border);font-size:16px;">·</span>';sep.style.display='flex';sep.style.alignItems='center';qEl.appendChild(sep);}
+  }
+  if(trioArr){
+    const sep=document.createElement('div');sep.innerHTML='<span style="color:var(--border);font-size:16px;">·</span>';sep.style.display='flex';sep.style.alignItems='center';qEl.appendChild(sep);
+    trioArr.forEach(c=>{
+      const chip=document.createElement('div');chip.className='pool-chip waiting';chip.dataset.pg='trio';
+      chip.innerHTML=`<div class="dot" style="background:${c.color};"></div><span style="color:${c.color};font-weight:600;">C${String(c.id).padStart(2,'0')}</span><span style="color:var(--accent4);font-size:10px;">Trio ⟳</span>`;
+      qEl.appendChild(chip);
+    });
+  }
+}
+
+function highlightQueueChips(opIdx){
+  document.querySelectorAll('.pool-chip').forEach(c=>c.classList.remove('active-chip','done-chip'));
+  if(opIdx>=coOps.length)return;
+  const op=coOps[opIdx];
+  document.querySelectorAll(`.pool-chip[data-pg="pair-${opIdx}"]`).forEach(c=>c.classList.add('active-chip'));
+  if(op.type==='trio')document.querySelectorAll('.pool-chip[data-pg="trio"]').forEach(c=>c.classList.add('active-chip'));
+}
+
+function markQueueDone(opIdx){
+  document.querySelectorAll(`.pool-chip[data-pg="pair-${opIdx}"]`).forEach(c=>{c.classList.remove('active-chip');c.classList.add('done-chip');});
+  const op=coOps[opIdx];
+  if(op&&op.type==='trio')document.querySelectorAll('.pool-chip[data-pg="trio"]').forEach(c=>{c.classList.remove('active-chip');c.classList.add('done-chip');});
+}
+
+function renderActiveOpPlaceholder(){
+  const active=document.getElementById('co-active-op');
+  if(coOpIndex>=coOps.length){active.innerHTML=`<div style="padding:20px;text-align:center;color:var(--accent2);font-size:13px;font-weight:600;">✓ Toate operațiile au fost efectuate!</div>`;return;}
+  const op=coOps[coOpIndex];const isPair=op.type==='pair';
+  const members=isPair?[op.p1,op.p2]:[op.a,op.b,op.c];
+  let html=`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><div style="font-size:11px;color:var(--text-dim);">Urmează: <strong style="color:${isPair?'var(--accent)':'var(--accent4)'};">${isPair?'Pereche '+(coOpIndex+1):'Trio Circular'}</strong></div>`;
+  members.forEach(c=>{html+=`<div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:${c.color};"></div><span style="font-size:11px;color:${c.color};font-weight:600;">C${String(c.id).padStart(2,'0')}</span>${miniStrip(c.genes)}</div>`;});
+  html+=`<span style="font-size:11px;color:var(--text-dim);margin-left:auto;">← apăsați ✂ pentru a genera punctul de tăiere</span></div>`;
+  active.innerHTML=html;highlightQueueChips(coOpIndex);
+}
+
+function nextCrossoverStep(){
+  if(!coOps||coOpIndex>=coOps.length)return;
+  const op=coOps[coOpIndex];
+  op.bp=Math.floor(Math.random()*(L-1))+1;
+  if(op.type==='pair'){op.c1=[...op.p1.genes.slice(0,op.bp),...op.p2.genes.slice(op.bp)];op.c2=[...op.p2.genes.slice(0,op.bp),...op.p1.genes.slice(op.bp)];}
+  else{op.ca=[...op.a.genes.slice(0,op.bp),...op.b.genes.slice(op.bp)];op.cb=[...op.b.genes.slice(0,op.bp),...op.c.genes.slice(op.bp)];op.cc=[...op.c.genes.slice(0,op.bp),...op.a.genes.slice(op.bp)];}
+  renderCompletedOp(op,coOpIndex,true);markQueueDone(coOpIndex);coOpIndex++;
+  document.getElementById('co-step-meta').textContent=`${coOpIndex} / ${coOps.length} efectuate`;
+  document.getElementById('co-op-counter').textContent=Math.min(coOpIndex+1,coOps.length);
+  renderActiveOpPlaceholder();updateCoButtons();
+  const cl=document.getElementById('co-completed-body');
+  cl.parentElement.style.display='block';
+  setTimeout(()=>cl.lastElementChild&&cl.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  if(coOpIndex>=coOps.length)buildAndShowReplacement();
+}
+
+function updateCoButtons(){
+  const done=coOpIndex>=coOps.length;
+  document.getElementById('btn-next-co').disabled=done;
+  document.getElementById('btn-auto-co').disabled=done;
+  if(done)document.getElementById('btn-next-co').classList.remove('pulse');
+}
+
+async function autoCompleteCrossover(){
+  if(coAutoRunning)return;coAutoRunning=true;document.getElementById('btn-auto-co').disabled=true;
+  while(coOpIndex<coOps.length){nextCrossoverStep();await new Promise(r=>setTimeout(r,320));}
+  coAutoRunning=false;
+}
+
+function renderCompletedOp(op,opIdx,animate){
+  const body=document.getElementById('co-completed-body');const card=document.createElement('div');
+  if(op.type==='pair'){
+    const [cA,cB]=PAIR_PAL[opIdx%PAIR_PAL.length];
+    card.className='completed-card'+(animate?' anim-in':'');
+    card.innerHTML=`<div class="completed-header">
+        <span style="color:${cA};font-weight:700;text-transform:uppercase;font-size:11px;">Pereche ${opIdx+1}</span>
+        <span class="bp-badge">tăietură după poz. ${op.bp}</span>
+        <span style="font-size:10px;color:var(--text-dim);margin-left:auto;"><span style="color:${cA}">■</span> poz. 1–${op.bp} &nbsp;|&nbsp; <span style="color:${cB}">■</span> poz. ${op.bp+1}–${L} schimbate</span>
+      </div>
+      <div class="completed-rows">
+        <div class="op-row"><span class="op-row-label" style="color:${cA};">P1</span>${coStrip(op.p1.genes,op.bp,cA,cA,false,true,true)}<span style="font-size:10px;color:var(--text-dim);margin-left:6px;">C${String(op.p1.id).padStart(2,'0')} · f=${op.p1.fitness}</span></div>
+        <div class="op-row"><span class="op-row-label" style="color:${cB};">P2</span>${coStrip(op.p2.genes,op.bp,cB,cB,false,true,true)}<span style="font-size:10px;color:var(--text-dim);margin-left:6px;">C${String(op.p2.id).padStart(2,'0')} · f=${op.p2.fitness}</span></div>
+        <div class="op-divider"></div>
+        <div class="op-row"><span class="op-row-label" style="color:var(--accent2);">D1</span>${coStrip(op.c1,op.bp,cA,cB,false,false,true)}<span class="new-label" style="margin-left:8px;">← P1[1..${op.bp}] + P2[${op.bp+1}..${L}]</span></div>
+        <div class="op-row"><span class="op-row-label" style="color:var(--accent2);">D2</span>${coStrip(op.c2,op.bp,cB,cA,false,false,true)}<span class="new-label" style="margin-left:8px;">← P2[1..${op.bp}] + P1[${op.bp+1}..${L}]</span></div>
+      </div>`;
+  } else {
+    const [cA,cB,cC]=TRIO_COL;
+    card.className='completed-card is-trio'+(animate?' anim-in':'');
+    card.innerHTML=`<div class="completed-header">
+        <span style="color:var(--accent4);font-weight:700;text-transform:uppercase;font-size:11px;">⟳ Trio Circular</span>
+        <span class="bp-badge">tăietură după poz. ${op.bp}</span>
+        <span style="font-size:10px;color:var(--text-dim);margin-left:auto;"><span style="color:${cA}">■A</span>·<span style="color:${cB}">■B</span>·<span style="color:${cC}">■C</span> cozile rotesc A→B→C→A</span>
+      </div>
+      <div class="trio-completed-flow">
+        ${tcol('A',op.a,op.ca,op.bp,cA,cB,'D_A')}
+        ${tcol('B',op.b,op.cb,op.bp,cB,cC,'D_B')}
+        ${tcol('C',op.c,op.cc,op.bp,cC,cA,'D_C')}
+      </div>`;
+  }
+  body.appendChild(card);
+}
+
+function tcol(lbl,parent,child,bp,cL,cR,childLbl){
+  return `<div class="trio-completed-col">
+    <div class="trio-col-label" style="color:${cL};">${lbl} — părinte</div>${coStrip(parent.genes,bp,cL,cL,false,true,true)}
+    <div class="trio-arrow">↓</div>
+    <div class="trio-col-label" style="color:var(--accent2);">${childLbl}</div>${coStrip(child,bp,cL,cR,false,false,true)}
+    <div style="font-size:9px;color:var(--text-dim);margin-top:2px;">${lbl}[1..${bp}]+coada următor</div>
+  </div>`;
+}
+
+function renderCoEdge(poolSize){
+  document.getElementById('co-edge-msg').innerHTML=poolSize===0?`<strong>Lotul este gol</strong>Niciun cromozom nu a avut r &lt; p<sub>c</sub> = ${coProb.toFixed(2)}. Măriți probabilitatea.`:`<strong>Doar 1 cromozom selectat</strong>Un singur individ nu poate fi încrucișat. Nicio operație efectuată.`;
+  document.getElementById('co-edge-panel').style.display='block';
+  buildAndShowReplacement();
+}
+
+function buildAndShowReplacement(){
+  postCrossoverPop=spins.map(s=>({id:s.selected.id,genes:[...s.selected.genes],color:s.selected.color,fitness:s.selected.fitness,isOffspring:false,parentId:null,offLabel:null}));
+  (coOps||[]).forEach(op=>{
+    if(op.bp===null)return;
+    if(op.type==='pair'){
+      postCrossoverPop[op.posP1]={genes:[...op.c1],color:op.p1.color,fitness:op.p1.fitness,id:op.p1.id,isOffspring:true,offLabel:'D1'};
+      postCrossoverPop[op.posP2]={genes:[...op.c2],color:op.p2.color,fitness:op.p2.fitness,id:op.p2.id,isOffspring:true,offLabel:'D2'};
+    } else {
+      postCrossoverPop[op.posA]={genes:[...op.ca],color:op.a.color,fitness:op.a.fitness,id:op.a.id,isOffspring:true,offLabel:'D_A'};
+      postCrossoverPop[op.posB]={genes:[...op.cb],color:op.b.color,fitness:op.b.fitness,id:op.b.id,isOffspring:true,offLabel:'D_B'};
+      postCrossoverPop[op.posC]={genes:[...op.cc],color:op.c.color,fitness:op.c.fitness,id:op.c.id,isOffspring:true,offLabel:'D_C'};
+    }
+  });
+  const nChanged=postCrossoverPop.filter(c=>c.isOffspring).length;
+  document.getElementById('co-repl-meta').textContent=`${nChanged} înlocuiți · ${16-nChanged} neschimbați`;
+  const grid=document.getElementById('co-repl-grid');grid.innerHTML='';
+  postCrossoverPop.forEach((chr,i)=>{
+    const row=document.createElement('div');row.className='repl-row '+(chr.isOffspring?'repl-changed':'repl-unchanged');
+    row.style.animation=`fadeSlideIn .18s ease ${i*.012}s both`;
+    const origChr=spins[i].selected;
+    if(chr.isOffspring){
+      row.innerHTML=`<span class="repl-slot">${i+1}</span>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:9px;color:var(--text-dim);width:28px;">era</span><span style="font-size:10px;color:${origChr.color};opacity:.6;font-weight:600;">C${String(origChr.id).padStart(2,'0')}</span>${plainStrip(origChr.genes)}</div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:9px;color:var(--accent2);width:28px;font-weight:700;">acum</span><span style="font-size:10px;color:${chr.color};font-weight:600;">C${String(chr.id).padStart(2,'0')}</span>${plainStrip(chr.genes)}<span class="repl-tag repl-tag-new">${chr.offLabel} ↑</span></div>
+        </div>`;
+    } else {
+      row.innerHTML=`<span class="repl-slot">${i+1}</span>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:${chr.color};font-weight:600;">C${String(chr.id).padStart(2,'0')}</span>${plainStrip(chr.genes)}<span class="repl-tag repl-tag-same">= neschimbat</span></div>`;
+    }
+    grid.appendChild(row);
+  });
+  document.getElementById('co-repl-panel').style.display='block';
+  setTimeout(()=>document.getElementById('co-repl-panel').scrollIntoView({behavior:'smooth',block:'nearest'}),200);
+}
+
+// ═══════════════════════════════════════════════════
+// MUTAȚIE
+// ═══════════════════════════════════════════════════
+function resetMutation(){
+  mutRolls=null;mutOps=null;mutOpIndex=0;mutAutoRunning=false;postMutationPop=null;
+  ['mut-rolls-panel','mut-step-panel','mut-edge-panel','mut-diff-panel'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('mut-status').textContent='';
+  document.getElementById('mut-completed-body').innerHTML='';
+  document.getElementById('mut-completed-list').style.display='none';
+  document.getElementById('mut-active-op').innerHTML='';
+}
+
+function getMutationBase(){
+  if(postCrossoverPop)return postCrossoverPop;
+  if(spins.length===16)return spins.map(s=>({...s.selected,genes:[...s.selected.genes],isOffspring:false}));
+  return null;
+}
+
+function runMutation(){
+  const statusEl=document.getElementById('mut-status');
+  const base=getMutationBase();
+  if(!base){statusEl.textContent='⚠ Finalizați mai întâi pasul de Selecție.';return;}
+  statusEl.textContent='';
+  mutProb=Math.min(1,Math.max(0,parseFloat(document.getElementById('mut-prob-input').value)||0.2));
+  mutRolls=base.map((chr,i)=>{const r=parseFloat(Math.random().toFixed(4));return{idx:i,chr,roll:r,selected:r<=mutProb};});
+  mutOps=mutRolls.filter(r=>r.selected).map(r=>({idx:r.idx,chr:r.chr,point:null,newGenes:null}));
+  mutOpIndex=0;
+  renderMutRolls(mutOps.length);
+  if(mutOps.length===0){
+    document.getElementById('mut-edge-msg').innerHTML=`<strong>Niciun cromozom selectat pentru mutație</strong>Toate valorile extrase au fost peste p<sub>m</sub> = ${mutProb.toFixed(2)}.`;
+    document.getElementById('mut-edge-panel').style.display='block';
+    buildPostMutationPop();
+  } else {
+    document.getElementById('mut-step-panel').style.display='block';
+    document.getElementById('mut-op-total').textContent=mutOps.length;
+    document.getElementById('mut-op-counter').textContent=1;
+    document.getElementById('mut-step-meta').textContent='0 / '+mutOps.length+' efectuate';
+    renderMutPlaceholder();updateMutButtons();
+  }
+}
+
+function renderMutRolls(selectedCount){
+  const tbody=document.getElementById('mut-rolls-tbody');tbody.innerHTML='';
+  mutRolls.forEach((r,i)=>{
+    const tr=document.createElement('tr');tr.className=r.selected?'co-yes':'co-no';
+    tr.style.animation=`fadeSlideIn .2s ease ${i*.02}s both`;
+    tr.innerHTML=`<td style="color:var(--text-dim);font-weight:600;">${i+1}</td>
+      <td style="color:${r.chr.color};font-weight:700;">C${String(r.chr.id).padStart(2,'0')}</td>
+      <td>${miniStrip(r.chr.genes)}</td>
+      <td style="color:${r.selected?'var(--accent5)':'var(--text-dim)'};font-weight:700;">${r.roll.toFixed(4)}</td>
+      <td style="font-size:11px;color:${r.selected?'var(--accent5)':'var(--accent3)'};">${r.roll.toFixed(4)} ${r.selected?'≤':'>'} ${mutProb.toFixed(2)}</td>
+      <td>${r.selected?'<span class="badge-yes" style="background:rgba(101,64,168,.1);border-color:rgba(101,64,168,.35);color:var(--accent5);">✓ Mutație</span>':'<span class="badge-no">✗ Exclus</span>'}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('mut-rolls-meta').textContent=`${selectedCount} / 16 selectați pentru mutație · p_m = ${mutProb.toFixed(2)}`;
+  document.getElementById('mut-rolls-panel').style.display='block';
+}
+
+function renderMutPlaceholder(){
+  const active=document.getElementById('mut-active-op');
+  if(mutOpIndex>=mutOps.length){active.innerHTML=`<div style="padding:20px;text-align:center;color:var(--accent2);font-size:13px;font-weight:600;">✓ Toate mutațiile au fost efectuate!</div>`;return;}
+  const op=mutOps[mutOpIndex];
+  active.innerHTML=`<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="font-size:11px;color:var(--text-dim);">Urmează: <strong style="color:var(--accent5);">Mutația ${mutOpIndex+1} / ${mutOps.length}</strong></div>
+    <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:${op.chr.color};"></div>
+      <span style="font-size:11px;color:${op.chr.color};font-weight:600;">C${String(op.chr.id).padStart(2,'0')}</span>${miniStrip(op.chr.genes)}
+    </div>
+    <span style="font-size:11px;color:var(--text-dim);margin-left:auto;">← apăsați ☢ pentru a alege punctul de mutație</span>
+  </div>`;
+}
+
+function nextMutationStep(){
+  if(!mutOps||mutOpIndex>=mutOps.length)return;
+  const op=mutOps[mutOpIndex];
+  op.point=Math.floor(Math.random()*L);
+  op.newGenes=[...op.chr.genes];
+  op.newGenes[op.point]=op.chr.genes[op.point]^1;
+  renderMutCard(op,mutOpIndex,true);
+  mutOpIndex++;
+  document.getElementById('mut-step-meta').textContent=`${mutOpIndex} / ${mutOps.length} efectuate`;
+  document.getElementById('mut-op-counter').textContent=Math.min(mutOpIndex+1,mutOps.length);
+  renderMutPlaceholder();updateMutButtons();
+  const cl=document.getElementById('mut-completed-body');
+  cl.parentElement.style.display='block';
+  setTimeout(()=>cl.lastElementChild&&cl.lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  if(mutOpIndex>=mutOps.length)buildPostMutationPop();
+}
+
+function updateMutButtons(){
+  const done=mutOpIndex>=mutOps.length;
+  document.getElementById('btn-next-mut').disabled=done;
+  document.getElementById('btn-auto-mut').disabled=done;
+  if(done)document.getElementById('btn-next-mut').classList.remove('pulse-v');
+}
+
+async function autoCompleteMutation(){
+  if(mutAutoRunning)return;mutAutoRunning=true;document.getElementById('btn-auto-mut').disabled=true;
+  while(mutOpIndex<mutOps.length){nextMutationStep();await new Promise(r=>setTimeout(r,350));}
+  mutAutoRunning=false;
+}
+
+function renderMutCard(op,opIdx,animate){
+  const body=document.getElementById('mut-completed-body');const card=document.createElement('div');
+  card.className='mut-card'+(animate?' anim-in':'');
+  const oldVal=op.chr.genes[op.point],newVal=op.newGenes[op.point];
+  card.innerHTML=`<div class="mut-card-header">
+      <span style="color:${op.chr.color};font-weight:700;text-transform:uppercase;font-size:11px;">Mutația ${opIdx+1}</span>
+      <span class="mut-point-badge">poziția ${op.point+1}</span>
+      <span class="mut-flip-badge">${oldVal} → ${newVal}</span>
+      <span style="font-size:10px;color:var(--text-dim);margin-left:auto;">C${String(op.chr.id).padStart(2,'0')}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="op-row">
+        <span class="op-row-label" style="color:var(--text-dim);font-size:10px;">Înainte</span>
+        ${mutStrip(op.chr.genes,op.point,false)}
+        <span style="font-size:10px;color:var(--accent4);margin-left:8px;font-weight:600;">bitul ${op.point+1} = ${oldVal}</span>
+      </div>
+      <div class="op-row">
+        <span class="op-row-label" style="color:var(--accent5);font-size:10px;">După</span>
+        ${mutStrip(op.newGenes,op.point,true)}
+        <span style="font-size:10px;color:var(--accent5);margin-left:8px;font-weight:600;">bitul ${op.point+1} inversat → ${newVal}</span>
+      </div>
+    </div>`;
+  body.appendChild(card);
+}
+
+function buildPostMutationPop(){
+  const base=getMutationBase();
+  postMutationPop=base.map(c=>({...c,genes:[...c.genes],wasMutated:false,mutPoint:-1}));
+  (mutOps||[]).forEach(op=>{
+    if(op.point===null)return;
+    postMutationPop[op.idx]={...postMutationPop[op.idx],genes:[...op.newGenes],wasMutated:true,mutPoint:op.point};
+  });
+  buildMutDiffPanel();
+}
+
+function buildMutDiffPanel(){
+  const base=getMutationBase();
+  if(!base||!postMutationPop)return;
+
+  // diff strip that highlights violet for changed genes
+  function mutDiffStrip(genes, refGenes){
+    let h='<div class="gene-strip">';
+    genes.forEach((g,i)=>{
+      const isDiff=refGenes&&(g!==refGenes[i]);
+      let style;
+      if(isDiff){
+        style=g?`background:#d4c4f8;color:var(--accent5);border:2px solid var(--accent5);`
+               :`background:#ede8fb;color:${CHR_COLORS[4]}88;border:2px solid var(--accent5);`;
+      } else {
+        style=g?`background:#cce4f7;color:var(--accent);border:1px solid #99c8ef;`
+               :`background:var(--gene0);color:#8aaaca;border:1px solid #c4d8ea;`;
+      }
+      h+=`<div class="gene" style="${style}">${g}</div>`;
+    });
+    return h+'</div>';
+  }
+
+  const leftEl=document.getElementById('mut-diff-left'); leftEl.innerHTML='';
+  const rightEl=document.getElementById('mut-diff-right'); rightEl.innerHTML='';
+  let mutCount=0, bitCount=0;
+
+  base.forEach((chr,i)=>{
+    const after=postMutationPop[i];
+    const changed=chr.genes.some((g,gi)=>after.genes[gi]!==g);
+    if(changed){mutCount++;chr.genes.forEach((g,gi)=>{if(after.genes[gi]!==g)bitCount++;});}
+
+    const lRow=document.createElement('div');
+    lRow.className='res-row'+(changed?' res-changed':'');
+    lRow.style.animation=`fadeSlideIn .18s ease ${i*.012}s both`;
+    lRow.innerHTML=`<span class="res-slot">${i+1}</span><span style="font-size:10px;color:${chr.color};margin-right:4px;font-weight:600;">C${String(chr.id).padStart(2,'0')}</span>${mutDiffStrip(chr.genes, after.genes)}<span style="font-size:10px;color:var(--text-dim);margin-left:6px;">f=${chr.fitness}</span>`;
+    leftEl.appendChild(lRow);
+
+    const rRow=document.createElement('div');
+    rRow.className='res-row'+(changed?' res-changed':'');
+    rRow.style.animation=`fadeSlideIn .18s ease ${i*.012}s both`;
+    const mutTag=after.wasMutated?`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(101,64,168,.1);color:var(--accent5);border:1px solid rgba(101,64,168,.3);font-weight:700;">mutație poz.${after.mutPoint+1}</span>`:'';
+    rRow.innerHTML=`<span class="res-slot">${i+1}</span><span style="font-size:10px;color:${after.color};margin-right:4px;font-weight:600;">C${String(after.id).padStart(2,'0')}</span>${mutDiffStrip(after.genes, chr.genes)}<span style="margin-left:6px;">${mutTag}</span>`;
+    rightEl.appendChild(rRow);
+  });
+
+  document.getElementById('mut-diff-meta').textContent=`${mutCount} cromozomi mutați · ${bitCount} biți inversați`;
+  document.getElementById('mut-diff-stats').innerHTML=`
+    <div><div class="diff-stat-val" style="color:var(--accent5);">${mutCount}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">cromozomi mutați</div></div>
+    <div><div class="diff-stat-val" style="color:var(--accent3);">${bitCount}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">biți inversați</div></div>
+    <div><div class="diff-stat-val" style="color:var(--text-dim);">${16-mutCount}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">cromozomi nemodificați</div></div>`;
+
+  document.getElementById('mut-diff-panel').style.display='block';
+  setTimeout(()=>document.getElementById('mut-diff-panel').scrollIntoView({behavior:'smooth',block:'nearest'}),200);
+}
+
+// ═══════════════════════════════════════════════════
+// REZULTATE
+// ═══════════════════════════════════════════════════
+function buildResultsTab(){
+  const finalPop=postMutationPop||getMutationBase();
+  const incomplete=document.getElementById('results-incomplete');
+  const panel=document.getElementById('results-panel');
+  if(!finalPop||spins.length<16){panel.style.display='none';incomplete.style.display='block';return;}
+  panel.style.display='block';incomplete.style.display='none';
+  const leftEl=document.getElementById('res-left');leftEl.innerHTML='';
+  const rightEl=document.getElementById('res-right');rightEl.innerHTML='';
+  let diffCount=0,diffGenes=0;
+  originalPop.forEach((origChr,i)=>{
+    const finalChr=finalPop[i];
+    const changed=origChr.genes.some((g,gi)=>finalChr.genes[gi]!==g);
+    if(changed){diffCount++;origChr.genes.forEach((g,gi)=>{if(finalChr.genes[gi]!==g)diffGenes++;});}
+    const lRow=document.createElement('div');lRow.className='res-row'+(changed?' res-changed':'');
+    lRow.innerHTML=`<span class="res-slot">${i+1}</span><span style="font-size:10px;color:${origChr.color};margin-right:4px;font-weight:600;">C${String(origChr.id).padStart(2,'0')}</span>${diffStrip(origChr.genes,finalChr.genes)}<span style="font-size:10px;color:var(--text-dim);margin-left:6px;">f=${origChr.fitness}</span>`;
+    leftEl.appendChild(lRow);
+    const rRow=document.createElement('div');rRow.className='res-row'+(changed?' res-changed':'');
+    let tags='';
+    if(finalChr.isOffspring)tags+=`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(30,126,62,.1);color:var(--accent2);border:1px solid rgba(30,126,62,.3);font-weight:700;">încrucișat</span> `;
+    if(finalChr.wasMutated)tags+=`<span style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(101,64,168,.1);color:var(--accent5);border:1px solid rgba(101,64,168,.3);font-weight:700;">mutație</span>`;
+    rRow.innerHTML=`<span class="res-slot">${i+1}</span><span style="font-size:10px;color:${finalChr.color};margin-right:4px;font-weight:600;">C${String(finalChr.id).padStart(2,'0')}</span>${diffStrip(finalChr.genes,origChr.genes)}<span style="display:flex;gap:4px;margin-left:6px;align-items:center;">${tags}</span>`;
+    rightEl.appendChild(rRow);
+  });
+  document.getElementById('results-meta').textContent=`${diffCount} cromozomi modificați · ${diffGenes} biți schimbați`;
+  document.getElementById('diff-stats').innerHTML=`
+    <div><div class="diff-stat-val" style="color:var(--accent3);">${diffCount}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">cromozomi modificați</div></div>
+    <div><div class="diff-stat-val" style="color:var(--accent4);">${diffGenes}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">biți schimbați total</div></div>
+    <div><div class="diff-stat-val" style="color:var(--accent2);">${postCrossoverPop?postCrossoverPop.filter(c=>c.isOffspring).length:0}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">din încrucișare</div></div>
+    <div><div class="diff-stat-val" style="color:var(--accent5);">${postMutationPop?postMutationPop.filter(c=>c.wasMutated).length:0}</div><div style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">din mutație</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGARE TABURI
+// ═══════════════════════════════════════════════════
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('content-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='selectie'){buildSelectionTable();drawRoulette();}
+  if(name==='incrucisare'){
+    const s=document.getElementById('co-status');
+    if(spins.length<16){s.textContent='⚠ Finalizați mai întâi pasul de Selecție.';}else{s.textContent='';}
+  }
+  if(name==='mutatie'){
+    const s=document.getElementById('mut-status');
+    if(spins.length<16){s.textContent='⚠ Finalizați mai întâi pasul de Selecție.';}else{s.textContent='';}
+  }
+  if(name==='rezultate')buildResultsTab();
+}
+
+// ═══════════════════════════════════════════════════
+// PORNIRE
+// ═══════════════════════════════════════════════════
+initPopulation();
+renderPopulation();
+</script>
+</body>
+</html>
