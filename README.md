@@ -2,6 +2,7 @@
 
 Un instrument educațional interactiv pentru vizualizarea pas cu pas a operațiilor unui algoritm genetic clasic. Aplicația rulează complet în browser, fără dependențe externe sau server.
 
+![Logo Alg_Gen](logo.png) *
 ---
 
 ## ✨ Funcționalități
